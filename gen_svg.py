@@ -314,7 +314,7 @@ SVG_W = int(info_x + TOTAL * INFO_CW + PAD * 2)
 def render(out_file, bg=BG):
     parts = []
     font_face = (
-        f'@font-face{{font-family:"{FONT_NAME}";font-weight:400;'
+        f'@font-face{{font-family:"{FONT_NAME}";font-weight:400 900;'
         f'src:url("data:font/woff2;base64,{FONT_B64}") format("woff2");}}'
     )
     parts.append(
@@ -322,7 +322,7 @@ def render(out_file, bg=BG):
         f"<defs><style>"
         f"{font_face}"
         f"text{{font-family:{FONT};white-space:pre;}}"
-        f".i{{font-size:{INFO_FS}px;letter-spacing:-1px;}}"
+        f".i{{font-size:{INFO_FS}px;letter-spacing:-1px;font-weight:bold;}}"
         f"</style></defs>\n"
         f'<rect width="{SVG_W}" height="{SVG_H}" rx="12" fill="{bg}"/>\n'
     )
