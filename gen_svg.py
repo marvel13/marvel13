@@ -14,7 +14,7 @@ SPRITE_FILE = _args.pokemon or (
     "/Users/salwynmathew/pokemon-colorscripts/colorscripts/small/regular/gengar"
 )
 OUT_DARK = str(REPO_DIR / "dark_mode.svg")
-FONT_B64 = (REPO_DIR / "font_regular.b64").read_text().strip()
+FONT_B64 = (REPO_DIR / "font_jbmono.b64").read_text().strip()
 
 # ── Stats (written by fetch_stats.py) ────────────────────
 try:
@@ -43,8 +43,8 @@ WHT = "#ffffff"
 SEC = "#c9d1d9"
 
 # ── Typography ───────────────────────────────────────────
-FONT_NAME = "SpaceMono"
-FONT = f"'{FONT_NAME}','Courier New',monospace"
+FONT_NAME = "JetBrainsMono"
+FONT = f"'{FONT_NAME}','JetBrains Mono','Courier New',monospace"
 INFO_FS = 21
 INFO_LH = 24
 INFO_CW = 11.60
@@ -322,7 +322,8 @@ def render(out_file, bg=BG):
         f"<defs><style>"
         f"{font_face}"
         f"text{{font-family:{FONT};white-space:pre;}}"
-        f".i{{font-size:{INFO_FS}px;letter-spacing:-1px;}}"
+        f".i{{font-size:{INFO_FS}px;letter-spacing:-1px;"
+        f"paint-order:stroke fill;stroke:currentColor;stroke-width:0.4px;stroke-linejoin:round;}}"
         f"</style></defs>\n"
         f'<rect width="{SVG_W}" height="{SVG_H}" rx="12" fill="{bg}"/>\n'
     )
