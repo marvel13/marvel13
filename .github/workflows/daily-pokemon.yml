@@ -1,0 +1,42 @@
+name: Daily Pokémon
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # midnight UTC every day
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout profile repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Clone pokemon-colorscripts
+        run: |
+          git clone --depth 1 https://gitlab.com/phoneybadger/pokemon-colorscripts.git /tmp/pokemon-colorscripts
+
+      - name: Pick random Pokémon and generate SVG
+        run: |
+          POKEMON=$(ls /tmp/pokemon-colorscripts/colorscripts/small/regular/ | shuf -n 1)
+          echo "Today's Pokémon: $POKEMON"
+          echo "POKEMON_NAME=$POKEMON" >> $GITHUB_ENV
+          python3 gen_svg.py --pokemon "/tmp/pokemon-colorscripts/colorscripts/small/regular/$POKEMON"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dark_mode.svg
+          git diff --staged --quiet && echo "No changes" || (
+            git commit -m "Daily Pokémon: $POKEMON_NAME ($(date +%Y-%m-%d))"
+            git push
+          )
