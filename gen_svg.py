@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate neofetch-style GitHub profile SVG with half-block pixel art."""
 
-import html, re, pathlib, argparse
+import html, json, re, pathlib, argparse
 
 # ── Args ──────────────────────────────────────────────────
 # --pokemon PATH  overrides the default sprite (used by GitHub Actions)
@@ -16,6 +16,14 @@ SPRITE_FILE = _args.pokemon or (
 OUT_DARK = str(REPO_DIR / "dark_mode.svg")
 FONT_B64 = (REPO_DIR / "font_regular.b64").read_text().strip()
 
+# ── Stats (written by fetch_stats.py) ────────────────────
+try:
+    _stats = json.loads((REPO_DIR / "stats.json").read_text())
+except FileNotFoundError:
+    _stats = {'repos': 10, 'contributed': 12, 'stars': 0,
+              'commits': 60, 'followers': 3,
+              'loc_add': 0, 'loc_del': 0, 'loc_total': 0}
+
 # ── Palette ──────────────────────────────────────────────
 BG = "#161b22"
 FG = "#c9d1d9"
@@ -23,15 +31,16 @@ KEY = "#ffa657"
 VAL = "#a5d6ff"
 DOT = "#616e7f"
 GRN = "#3fb950"
+RED = "#f85149"
 WHT = "#ffffff"
 SEC = "#c9d1d9"
 
 # ── Typography ───────────────────────────────────────────
 FONT_NAME = "SpaceMono"
 FONT = f"'{FONT_NAME}','Courier New',monospace"
-INFO_FS = 13
-INFO_LH = 21
-INFO_CW = 7.82
+INFO_FS = 16
+INFO_LH = 20
+INFO_CW = 8.60
 
 # ── Layout ───────────────────────────────────────────────
 PAD = 20
@@ -108,26 +117,86 @@ sprite_rows = len(sprite)
 
 
 # ── Row builders ─────────────────────────────────────────
+PREFIX = ". "
+
+
+def _key_spans(key):
+    """Split 'Languages.Programming:' into colored spans matching Andrew6rant's style."""
+    base = key.rstrip(":")
+    parts = base.split(".")
+    spans = []
+    for i, part in enumerate(parts):
+        spans.append((part, KEY))
+        if i < len(parts) - 1:
+            spans.append((".", FG))
+    spans.append((":", FG))
+    return spans
+
+
 def kv(key, val):
-    space = TOTAL - len(key) - len(val)
-    if space < 4:
-        val = val[: TOTAL - len(key) - 6] + "..."
-        space = 5
-    dots = " " + "." * (space - 2) + " "
-    return [(key, KEY), (dots, DOT), (val, VAL)]
+    used = len(PREFIX) + len(key) + 2 + len(val)
+    if used > TOTAL - 2:
+        val = val[: TOTAL - len(PREFIX) - len(key) - 5] + "..."
+        used = len(PREFIX) + len(key) + 2 + len(val)
+    dots_count = max(2, TOTAL - used)
+    return [(PREFIX, DOT)] + _key_spans(key) + [(" " + "." * dots_count + " ", DOT), (val, VAL)]
 
 
 def header(t):
-    return [(t, WHT)]
-
-
-def divider():
-    return [("—" * TOTAL, DOT)]
+    dashes = "—" * max(0, TOTAL - len(t) - 1)
+    return [(t + " ", WHT), (dashes, DOT)]
 
 
 def section(t):
-    pad = "—" * max(0, TOTAL - len(t) - 1)
-    return [(t + " ", SEC), (pad, DOT)]
+    dashes = "—" * max(0, TOTAL - len(t) - 3)
+    return [("- ", DOT), (t + " ", SEC), (dashes, DOT)]
+
+
+def stat_repos(repos, contributed, stars):
+    repos_str, contrib_str, stars_str = str(repos), str(contributed), str(stars)
+    left_dots = " .... "
+    contrib_block = f" {{Contributed: {contrib_str}}}"
+    sep = " | "
+    right_space = TOTAL - (len(PREFIX) + len("Repos:") + len(left_dots) + len(repos_str) + len(contrib_block) + len(sep) + len("Stars:") + len(stars_str))
+    right_dots = " " + "." * max(1, right_space - 2) + " "
+    return [
+        (PREFIX, DOT), ("Repos", KEY), (":", FG), (left_dots, DOT), (repos_str, VAL),
+        (" {", FG), ("Contributed", KEY), (": ", FG), (contrib_str, VAL), ("}", FG),
+        (sep, FG),
+        ("Stars", KEY), (":", FG), (right_dots, DOT), (stars_str, VAL),
+    ]
+
+
+def stat_commits(commits, followers):
+    commits_str, followers_str = str(commits), str(followers)
+    sep = " | "
+    fixed = len(PREFIX) + len("Commits:") + len(commits_str) + len(sep) + len("Followers:") + len(followers_str)
+    total_dot_space = TOTAL - fixed
+    left_dot_chars = (total_dot_space * 2) // 3
+    right_dot_chars = total_dot_space - left_dot_chars
+    left_dots = " " + "." * max(1, left_dot_chars - 2) + " "
+    right_dots = " " + "." * max(1, right_dot_chars - 2) + " "
+    return [
+        (PREFIX, DOT), ("Commits", KEY), (":", FG), (left_dots, DOT), (commits_str, VAL),
+        (sep, FG),
+        ("Followers", KEY), (":", FG), (right_dots, DOT), (followers_str, VAL),
+    ]
+
+
+def stat_loc(total, additions, deletions):
+    total_str = f"{total:,}"
+    add_str = f"{additions:,}"
+    del_str = f"{deletions:,}"
+    sep, end = " ( ", " )"
+    fixed = len(PREFIX) + len("Lines of Code on GitHub:") + len(". ") + len(total_str) + len(sep) + len(add_str) + len("++") + len(", ") + len(" ") + len(del_str) + len("--") + len(end)
+    extra_dots = max(0, TOTAL - fixed)
+    loc_dots = ". " + "." * extra_dots + " " if extra_dots else ". "
+    return [
+        (PREFIX, DOT), ("Lines of Code on GitHub", KEY), (":", FG), (loc_dots, DOT), (total_str, VAL),
+        (sep, FG), (add_str, GRN), ("++", GRN),
+        (", ", FG), (" ", FG), (del_str, RED), ("--", RED),
+        (end, FG),
+    ]
 
 
 def blank():
@@ -136,7 +205,6 @@ def blank():
 
 rows = [
     header("salwyn@mathew"),
-    divider(),
     kv("OS:", "macOS Sequoia"),
     kv("Host:", "MikeLegal"),
     kv("Role:", "SDE AI"),
@@ -148,14 +216,15 @@ rows = [
     kv("Hobbies.Software:", "LLM pipelines, MCP servers"),
     kv("Hobbies.IRL:", "Guitar, Bird Watching"),
     blank(),
-    section("— Contact"),
+    section("Contact"),
     kv("LinkedIn:", "salwyn-mathew-4579381b7"),
     kv("GitHub:", "marvel13"),
     kv("Instagram:", "_salwinator"),
     blank(),
-    section("— GitHub Stats"),
-    [("Repos: ", KEY), ("10", GRN), ("  |  Followers: ", KEY), ("3", GRN)],
-    [("Commits: ", KEY), ("78", GRN), ("  |  Stars: ", KEY), ("0", GRN)],
+    section("GitHub Stats"),
+    stat_repos(_stats['repos'], _stats['contributed'], _stats['stars']),
+    stat_commits(_stats['commits'], _stats['followers']),
+    stat_loc(_stats['loc_total'], _stats['loc_add'], _stats['loc_del']),
 ]
 
 # ── Canvas — PX is the square pixel size ─────────────────
@@ -185,7 +254,7 @@ def render(out_file, bg=BG):
         f"<defs><style>"
         f"{font_face}"
         f"text{{font-family:{FONT};white-space:pre;}}"
-        f".i{{font-size:{INFO_FS}px;}}"
+        f".i{{font-size:{INFO_FS}px;letter-spacing:-1px;}}"
         f"</style></defs>\n"
         f'<rect width="{SVG_W}" height="{SVG_H}" rx="12" fill="{bg}"/>\n'
     )

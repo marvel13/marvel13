@@ -20,6 +20,15 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch GitHub stats
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          USER_NAME: marvel13
+        run: python3 fetch_stats.py
+
       - name: Clone pokemon-colorscripts
         run: |
           git clone --depth 1 https://gitlab.com/phoneybadger/pokemon-colorscripts.git /tmp/pokemon-colorscripts
@@ -35,7 +44,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dark_mode.svg
+          git add dark_mode.svg stats.json cache/
           git diff --staged --quiet && echo "No changes" || (
             git commit -m "Daily Pokémon: $POKEMON_NAME ($(date +%Y-%m-%d))"
             git push
