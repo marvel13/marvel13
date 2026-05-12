@@ -9,7 +9,7 @@ _parser = argparse.ArgumentParser()
 _parser.add_argument("--pokemon", default=None, help="Path to colorscript file")
 _args = _parser.parse_args()
 
-REPO_DIR    = pathlib.Path(__file__).parent
+REPO_DIR = pathlib.Path(__file__).parent
 SPRITE_FILE = _args.pokemon or (
     "/Users/salwynmathew/pokemon-colorscripts/colorscripts/small/regular/gengar"
 )
@@ -20,9 +20,16 @@ FONT_B64 = (REPO_DIR / "font_regular.b64").read_text().strip()
 try:
     _stats = json.loads((REPO_DIR / "stats.json").read_text())
 except FileNotFoundError:
-    _stats = {'repos': 10, 'contributed': 12, 'stars': 0,
-              'commits': 60, 'followers': 3,
-              'loc_add': 0, 'loc_del': 0, 'loc_total': 0}
+    _stats = {
+        "repos": 10,
+        "contributed": 12,
+        "stars": 0,
+        "commits": 60,
+        "followers": 3,
+        "loc_add": 0,
+        "loc_del": 0,
+        "loc_total": 0,
+    }
 
 # ── Palette ──────────────────────────────────────────────
 BG = "#161b22"
@@ -38,9 +45,9 @@ SEC = "#c9d1d9"
 # ── Typography ───────────────────────────────────────────
 FONT_NAME = "SpaceMono"
 FONT = f"'{FONT_NAME}','Courier New',monospace"
-INFO_FS = 16
-INFO_LH = 20
-INFO_CW = 8.60
+INFO_FS = 19
+INFO_LH = 24
+INFO_CW = 10.32
 
 # ── Layout ───────────────────────────────────────────────
 PAD = 20
@@ -139,7 +146,11 @@ def kv(key, val):
         val = val[: TOTAL - len(PREFIX) - len(key) - 5] + "..."
         used = len(PREFIX) + len(key) + 2 + len(val)
     dots_count = max(2, TOTAL - used)
-    return [(PREFIX, DOT)] + _key_spans(key) + [(" " + "." * dots_count + " ", DOT), (val, VAL)]
+    return (
+        [(PREFIX, DOT)]
+        + _key_spans(key)
+        + [(" " + "." * dots_count + " ", DOT), (val, VAL)]
+    )
 
 
 def header(t):
@@ -157,29 +168,63 @@ def stat_repos(repos, contributed, stars):
     left_dots = " .... "
     contrib_block = f" {{Contributed: {contrib_str}}}"
     sep = " | "
-    right_space = TOTAL - (len(PREFIX) + len("Repos:") + len(left_dots) + len(repos_str) + len(contrib_block) + len(sep) + len("Stars:") + len(stars_str))
+    right_space = TOTAL - (
+        len(PREFIX)
+        + len("Repos:")
+        + len(left_dots)
+        + len(repos_str)
+        + len(contrib_block)
+        + len(sep)
+        + len("Stars:")
+        + len(stars_str)
+    )
     right_dots = " " + "." * max(1, right_space - 2) + " "
     return [
-        (PREFIX, DOT), ("Repos", KEY), (":", FG), (left_dots, DOT), (repos_str, VAL),
-        (" {", FG), ("Contributed", KEY), (": ", FG), (contrib_str, VAL), ("}", FG),
+        (PREFIX, DOT),
+        ("Repos", KEY),
+        (":", FG),
+        (left_dots, DOT),
+        (repos_str, VAL),
+        (" {", FG),
+        ("Contributed", KEY),
+        (": ", FG),
+        (contrib_str, VAL),
+        ("}", FG),
         (sep, FG),
-        ("Stars", KEY), (":", FG), (right_dots, DOT), (stars_str, VAL),
+        ("Stars", KEY),
+        (":", FG),
+        (right_dots, DOT),
+        (stars_str, VAL),
     ]
 
 
 def stat_commits(commits, followers):
     commits_str, followers_str = str(commits), str(followers)
     sep = " | "
-    fixed = len(PREFIX) + len("Commits:") + len(commits_str) + len(sep) + len("Followers:") + len(followers_str)
+    fixed = (
+        len(PREFIX)
+        + len("Commits:")
+        + len(commits_str)
+        + len(sep)
+        + len("Followers:")
+        + len(followers_str)
+    )
     total_dot_space = TOTAL - fixed
     left_dot_chars = (total_dot_space * 2) // 3
     right_dot_chars = total_dot_space - left_dot_chars
     left_dots = " " + "." * max(1, left_dot_chars - 2) + " "
     right_dots = " " + "." * max(1, right_dot_chars - 2) + " "
     return [
-        (PREFIX, DOT), ("Commits", KEY), (":", FG), (left_dots, DOT), (commits_str, VAL),
+        (PREFIX, DOT),
+        ("Commits", KEY),
+        (":", FG),
+        (left_dots, DOT),
+        (commits_str, VAL),
         (sep, FG),
-        ("Followers", KEY), (":", FG), (right_dots, DOT), (followers_str, VAL),
+        ("Followers", KEY),
+        (":", FG),
+        (right_dots, DOT),
+        (followers_str, VAL),
     ]
 
 
@@ -188,13 +233,35 @@ def stat_loc(total, additions, deletions):
     add_str = f"{additions:,}"
     del_str = f"{deletions:,}"
     sep, end = " ( ", " )"
-    fixed = len(PREFIX) + len("Lines of Code on GitHub:") + len(". ") + len(total_str) + len(sep) + len(add_str) + len("++") + len(", ") + len(" ") + len(del_str) + len("--") + len(end)
+    fixed = (
+        len(PREFIX)
+        + len("Lines of Code on GitHub:")
+        + len(". ")
+        + len(total_str)
+        + len(sep)
+        + len(add_str)
+        + len("++")
+        + len(", ")
+        + len(" ")
+        + len(del_str)
+        + len("--")
+        + len(end)
+    )
     extra_dots = max(0, TOTAL - fixed)
     loc_dots = ". " + "." * extra_dots + " " if extra_dots else ". "
     return [
-        (PREFIX, DOT), ("Lines of Code on GitHub", KEY), (":", FG), (loc_dots, DOT), (total_str, VAL),
-        (sep, FG), (add_str, GRN), ("++", GRN),
-        (", ", FG), (" ", FG), (del_str, RED), ("--", RED),
+        (PREFIX, DOT),
+        ("Lines of Code on GitHub", KEY),
+        (":", FG),
+        (loc_dots, DOT),
+        (total_str, VAL),
+        (sep, FG),
+        (add_str, GRN),
+        ("++", GRN),
+        (", ", FG),
+        (" ", FG),
+        (del_str, RED),
+        ("--", RED),
         (end, FG),
     ]
 
@@ -217,14 +284,15 @@ rows = [
     kv("Hobbies.IRL:", "Guitar, Bird Watching"),
     blank(),
     section("Contact"),
-    kv("LinkedIn:", "salwyn-mathew-4579381b7"),
-    kv("GitHub:", "marvel13"),
-    kv("Instagram:", "_salwinator"),
+    kv("LinkedIn:", "Salwyn Mathew"),
+    kv("Blog:", "marvel13.github.io/blog/"),
+    kv("Email.Personal:", "salwynmathew13@gmail.com"),
+    kv("Email.Work:", "salwyn.mathew@mikelegal.com"),
     blank(),
     section("GitHub Stats"),
-    stat_repos(_stats['repos'], _stats['contributed'], _stats['stars']),
-    stat_commits(_stats['commits'], _stats['followers']),
-    stat_loc(_stats['loc_total'], _stats['loc_add'], _stats['loc_del']),
+    stat_repos(_stats["repos"], _stats["contributed"], _stats["stars"]),
+    stat_commits(_stats["commits"], _stats["followers"]),
+    stat_loc(_stats["loc_total"], _stats["loc_add"], _stats["loc_del"]),
 ]
 
 # ── Canvas — PX is the square pixel size ─────────────────
