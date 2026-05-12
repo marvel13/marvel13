@@ -45,14 +45,14 @@ SEC = "#c9d1d9"
 # ── Typography ───────────────────────────────────────────
 FONT_NAME = "SpaceMono"
 FONT = f"'{FONT_NAME}','Courier New',monospace"
-INFO_FS = 19
+INFO_FS = 21
 INFO_LH = 24
-INFO_CW = 10.32
+INFO_CW = 11.60
 
 # ── Layout ───────────────────────────────────────────────
 PAD = 20
 GAP = 36
-TOTAL = 62  # monospace columns for key+dots+value
+TOTAL = 56  # monospace columns for key+dots+value
 
 # ── Parse half-block colorscript ─────────────────────────
 LOWER = "▄"  # U+2584: top=bg, bottom=fg
@@ -247,7 +247,7 @@ def stat_loc(total, additions, deletions):
         + len("--")
         + len(end)
     )
-    extra_dots = max(0, TOTAL - fixed)
+    extra_dots = max(0, TOTAL - fixed - 1)
     loc_dots = ". " + "." * extra_dots + " " if extra_dots else ". "
     return [
         (PREFIX, DOT),
@@ -277,7 +277,7 @@ rows = [
     kv("Role:", "SDE AI"),
     kv("IDE:", "VS Code, Claude Code"),
     blank(),
-    kv("Languages.Programming:", "Python, JavaScript, TypeScript"),
+    kv("Languages.Programming:", "Python, JS, TypeScript"),
     kv("Languages.Computer:", "HTML, CSS, JSON, YAML"),
     blank(),
     kv("Hobbies.Software:", "LLM pipelines, MCP servers"),
