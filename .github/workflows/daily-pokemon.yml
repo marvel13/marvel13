@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * *'   # midnight UTC every day
   workflow_dispatch:        # allow manual trigger from GitHub UI
 
+concurrency:
+  group: daily-pokemon
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -47,5 +51,5 @@ jobs:
           git add dark_mode.svg stats.json cache/
           git diff --staged --quiet && echo "No changes" || (
             git commit -m "Daily Pokémon: $POKEMON_NAME ($(date +%Y-%m-%d))"
-            git push
+            until git push; do git pull --rebase origin main; done
           )
