@@ -26,7 +26,7 @@ jobs:
       - name: Fetch GitHub stats
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          USER_NAME: marvel13
+          USER_NAME: salwinator
         run: python3 fetch_stats.py
 
       - name: Clone pokemon-colorscripts

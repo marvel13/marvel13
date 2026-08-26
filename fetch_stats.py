@@ -9,7 +9,7 @@ from pathlib import Path
 import requests
 
 TOKEN = os.environ.get('ACCESS_TOKEN') or os.environ.get('GITHUB_TOKEN')
-USER  = os.environ.get('USER_NAME', 'marvel13')
+USER  = os.environ.get('USER_NAME', 'salwinator')
 CACHE_FILE = Path('cache') / (hashlib.sha256(USER.encode()).hexdigest() + '.txt')
 GRAPHQL = 'https://api.github.com/graphql'
 HEADERS = {'Authorization': f'bearer {TOKEN}'}
